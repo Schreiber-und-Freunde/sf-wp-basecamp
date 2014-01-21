@@ -11,12 +11,12 @@ class SfWpBasecamp
 {
 	// singleton instance
 	private static $instance;
-	private static $url;
-	private static $username;
-	private static $password;
-	private static $useragent;
 
-	private $is_ready;
+	private $url;
+	private $username;
+	private $password;
+	private $useragent;
+	private $is_ready = true;
 	private $result;
 
 	public static function instance() {
@@ -33,33 +33,32 @@ class SfWpBasecamp
 	}
 
 	function init() {
-		self::$is_ready = false;
-
-		if( isset($_REQUEST['sfwp_basecamp_action']) ) {
-			if( $_REQUEST['sfwp_basecamp_action'] == 'save_options' ) {
-				$this->save_options();
-			}
-
-			if( $_REQUEST['sfwp_basecamp_action'] == 'push_notifications_test' ) {
-				$this->test();
-			}
-		}
 
 		$account = get_option('basecamp_account');
 		$username = get_option('basecamp_user');
 		$password = get_option('basecamp_password');
 
 		if( $account === false || $username === false || $password === false ) {
-			self::$is_ready = false;
+			$this->is_ready = false;
 			add_action('admin_notices', array( &$this, 'admin_notice_missing_account_data'));
 			return;
 		}
 
-		self::$url = 'https://basecamp.com/' . $account . '/api/v1/';
-		self::$username = $username;
-		self::$password = $password;
+		$this->url = 'https://basecamp.com/' . $account . '/api/v1/';
+		$this->username = $username;
+		$this->password = $password;
 
-		self::$useragent = get_bloginfo( 'name' ) . '(' . get_bloginfo( 'url' ) . ')';
+		$this->useragent = get_bloginfo( 'name' ) . ' (' . get_bloginfo( 'url' ) . ')';
+
+		if( isset($_REQUEST['sfwp_basecamp_action']) ) {
+			if( $_REQUEST['sfwp_basecamp_action'] == 'save_options' ) {
+				$this->save_options();
+			}
+
+			if( $_REQUEST['sfwp_basecamp_action'] == 'test' ) {
+				$this->test();
+			}
+		}
 	}
 
 	function admin_notice_missing_account_data() {
@@ -111,43 +110,42 @@ class SfWpBasecamp
 				<input type="hidden" name="sfwp_basecamp_action" value="test" />
 				<p class="submit"><input type="submit" value="<? _e('Test Settings', 'sf_wp_basecamp') ?>" class="button-primary" /></p>
 			</form>
-			<? if(self::$result !== '') : ?>
+			<? if( isset($this->result) ) : ?>
 			<h3><? _e('Test Result', 'sf_wp_basecamp') ?></h3>
-			<? echo '<pre>' . print_r(self::$result, true) . '</pre>'; ?>
+			<? echo '<pre>' . print_r( json_decode( $this->result ), true) . '</pre>'; ?>
 			<? endif; ?>
 		</div>
 		<?
 	}
 
 	private function test() {
-		if( !self::$is_ready ) {
+		
+		if( !$this->is_ready ) {
 			return false;
 		}
 
-		self::$result = self::do_request('projects.json');
+		$this->result = $this->do_request('projects.json');
 	}
 
 	public function do_request($method) {
-		if( !self::$is_ready ) {
+		if( !$this->is_ready ) {
 			return false;
 		}
 		
 		$curl = curl_init();
-
-		//curl_setopt($curl, CURLOPT_POST, 1);
 
 		if ($data) {
 			curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
 		}
 
 		curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-			'User-Agent: ' . self::$useragent
+			'User-Agent: ' . $this->useragent
 		));
 		
 		curl_setopt( $curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC );
-		curl_setopt( $curl, CURLOPT_USERPWD, self::$username . ':' . self::$password );
+		curl_setopt( $curl, CURLOPT_USERPWD, $this->username . ':' . $this->password );
 
-		curl_setopt( $curl, CURLOPT_URL, self::$url . $method );
+		curl_setopt( $curl, CURLOPT_URL, $this->url . $method );
 		curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
 
 		return curl_exec($curl);
