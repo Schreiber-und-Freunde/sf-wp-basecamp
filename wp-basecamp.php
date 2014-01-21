@@ -124,7 +124,7 @@ class SfWpBasecamp
 			return false;
 		}
 
-		$this->result = $this->do_request('projects.json');
+		$this->result = $this->get_todo_count(false);
 	}
 
 	public function do_request($method) {
@@ -150,9 +150,37 @@ class SfWpBasecamp
 
 		return curl_exec($curl);
 	}
+
+	public function get_todo_count( $open = true ) {
+		
+		$count = 0;
+
+		if( $open ) {
+			$todolists = json_decode( $this->do_request('todolists.json') );
+			
+			foreach ($todolists as $todolist) {
+				$count += $todolist->remaining_count;
+			}
+			
+		} else {
+			$todolists = json_decode( $this->do_request('todolists.json') );
+
+			foreach ($todolists as $todolist) {
+				$count += $todolist->completed_count;
+			}
+
+			$todolists = json_decode( $this->do_request('todolists/completed.json') );
+
+			foreach ($todolists as $todolist) {
+				$count += $todolist->completed_count;
+			}
+		}
+
+		return $count;
+	}
 }
 $sf_wp_basecamp = SfWpBasecamp::instance();
-function basecamp_get_projects() {
-	return $sf_wp_basecamp->do_request('projects.json');
+function basecamp_get_todo_count($open = false) {
+	return $sf_wp_basecamp->get_todo_count( $open );
 }
 ?>
