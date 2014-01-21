@@ -181,6 +181,6 @@ class SfWpBasecamp
 }
 $sf_wp_basecamp = SfWpBasecamp::instance();
 function basecamp_get_todo_count($open = false) {
-	return $sf_wp_basecamp->get_todo_count( $open );
+	return SfWpBasecamp::instance()->get_todo_count( $open );
 }
 ?>
