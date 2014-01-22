@@ -70,6 +70,12 @@ class SfWpBasecamp
 	}
 
 	function save_options() {
+
+		if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'] , 'sfwp_basecamp_action_save_options' ) ) {
+			wp_die( __('Nonce check failed', 'sf_wp_basecamp') );
+			return;
+		}
+		
 		if( isset($_REQUEST['basecamp_account']) ) {
 			update_option('basecamp_account', trim($_REQUEST['basecamp_account']) );
 		}
@@ -89,6 +95,7 @@ class SfWpBasecamp
 			<h2><? _e('Settings', 'sf_wp_basecamp'); ?> › <? _e('Basecamp', 'sf_wp_basecamp') ?></h2>
 			<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 				<input type="hidden" name="sfwp_basecamp_action" value="save_options" />
+				<input type="hidden" name="_wpnonce" value="<? echo wp_create_nonce( 'sfwp_basecamp_action_save_options' ) ?>" />
 				<table class="form-table">
 					<tr>
 						<th><label for="basecamp_account"><? _e('Account ID', 'sf_wp_basecamp') ?></label></th>
@@ -108,6 +115,7 @@ class SfWpBasecamp
 			<h3><? _e('Test', 'sf_wp_basecamp') ?></h3>
 			<form action="<?php echo $_SERVER['REQUEST_URI']; ?>" method="post">
 				<input type="hidden" name="sfwp_basecamp_action" value="test" />
+				<input type="hidden" name="_wpnonce" value="<? echo wp_create_nonce( 'sfwp_basecamp_action_test' ) ?>" />
 				<p class="submit"><input type="submit" value="<? _e('Test Settings', 'sf_wp_basecamp') ?>" class="button-primary" /></p>
 			</form>
 			<? if( isset($this->result) ) : ?>
@@ -120,6 +128,11 @@ class SfWpBasecamp
 
 	private function test() {
 		
+		if ( ! wp_verify_nonce( $_REQUEST['_wpnonce'] , 'sfwp_basecamp_action_test' ) ) {
+			wp_die( __('Nonce check failed', 'sf_wp_basecamp') );
+			return;
+		}
+
 		if( !$this->is_ready ) {
 			return false;
 		}
