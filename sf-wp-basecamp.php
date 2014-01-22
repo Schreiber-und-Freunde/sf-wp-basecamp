@@ -1,6 +1,6 @@
 <?
 /*
-Plugin Name: WP Basecamp
+Plugin Name: S&F Wordpress Basecamp
 Description: Basecamp API Integration for Wordpress
 Version: 0.1
 Author: Schreiber & Freunde GmbH
